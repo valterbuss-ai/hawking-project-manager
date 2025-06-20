@@ -375,13 +375,6 @@
             .controls {
                 flex-direction: column;
                 align-items: stretch;
-                gap: 20px;
-            }
-            
-            .controls > div:first-child {
-                display: flex;
-                flex-direction: column;
-                gap: 10px;
             }
             
             .filter-group {
@@ -439,10 +432,7 @@
         </div>
 
         <div class="controls">
-            <div style="display: flex; gap: 15px;">
-                <button class="btn" onclick="openModal()">+ Novo Projeto</button>
-                <button class="btn" onclick="saveToFile()" style="background: linear-gradient(45deg, #007bff, #0056b3);">💾 Salvar Dados</button>
-            </div>
+            <button class="btn" onclick="openModal()">+ Novo Projeto</button>
             <div class="filter-group">
                 <button class="filter-btn active" onclick="filterProjects('todos')">Todos</button>
                 <button class="filter-btn" onclick="filterProjects('planejamento')">Planejamento</button>
@@ -572,75 +562,15 @@
             renderProjects();
             updateStats();
             closeModal();
-            showNotification(editingIndex >= 0 ? 'Projeto atualizado com sucesso!' : 'Projeto criado com sucesso!', 'success');
         });
 
         function deleteProject(index) {
             if (confirm('Tem certeza que deseja excluir este projeto?')) {
                 projects.splice(index, 1);
+                saveProjects();
                 renderProjects();
                 updateStats();
-                showNotification('Projeto excluído com sucesso!', 'success');
             }
-        }
-
-        // Função para salvar dados em arquivo
-        function saveToFile() {
-            const dataStr = JSON.stringify(projects, null, 2);
-            const dataBlob = new Blob([dataStr], {type: 'application/json'});
-            
-            const link = document.createElement('a');
-            link.href = URL.createObjectURL(dataBlob);
-            link.download = `hawking_projetos_${new Date().toISOString().split('T')[0]}.json`;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            
-            showNotification('Dados salvos com sucesso!', 'success');
-        }
-
-        // Sistema de notificações
-        function showNotification(message, type = 'info') {
-            const notification = document.createElement('div');
-            notification.style.cssText = `
-                position: fixed;
-                top: 20px;
-                right: 20px;
-                background: ${type === 'success' ? 'rgba(40, 167, 69, 0.9)' : 'rgba(0, 123, 255, 0.9)'};
-                color: white;
-                padding: 15px 20px;
-                border-radius: 8px;
-                z-index: 10000;
-                font-size: 14px;
-                box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-                backdrop-filter: blur(10px);
-                animation: slideIn 0.3s ease;
-            `;
-            notification.textContent = message;
-            
-            // Adicionar CSS da animação se não existir
-            if (!document.querySelector('#notification-style')) {
-                const style = document.createElement('style');
-                style.id = 'notification-style';
-                style.textContent = `
-                    @keyframes slideIn {
-                        from { transform: translateX(100%); opacity: 0; }
-                        to { transform: translateX(0); opacity: 1; }
-                    }
-                `;
-                document.head.appendChild(style);
-            }
-            
-            document.body.appendChild(notification);
-            
-            setTimeout(() => {
-                notification.style.animation = 'slideIn 0.3s ease reverse';
-                setTimeout(() => {
-                    if (notification.parentNode) {
-                        document.body.removeChild(notification);
-                    }
-                }, 300);
-            }, 3000);
         }
 
         // Renderização
@@ -652,17 +582,13 @@
                 return;
             }
 
-            grid.innerHTML = projects.map((project, index) => {
-                // Só renderiza se o projeto está nos filtrados (ou se não há filtro)
-                if (filteredProjects !== projects && !filteredProjects.includes(project)) {
-                    return '';
-                }
-
+            grid.innerHTML = filteredProjects.map((project, index) => {
+                const originalIndex = projects.indexOf(project);
                 const isOverdue = project.endDate && new Date(project.endDate) < new Date() && project.status !== 'concluido';
                 const daysLeft = project.endDate ? Math.ceil((new Date(project.endDate) - new Date()) / (1000 * 60 * 60 * 24)) : null;
 
                 return `
-                    <div class="project-card" data-project-id="${index}">
+                    <div class="project-card">
                         <div class="project-header">
                             <div>
                                 <div class="project-title">${project.name}</div>
@@ -692,12 +618,12 @@
                         </div>
                         
                         <div class="project-actions">
-                            <button class="btn-small" onclick="openModal(${index})">Editar</button>
-                            <button class="btn-small" onclick="deleteProject(${index})" style="background: rgba(220, 53, 69, 0.2); border-color: #dc3545;">Excluir</button>
+                            <button class="btn-small" onclick="openModal(${originalIndex})">Editar</button>
+                            <button class="btn-small" onclick="deleteProject(${originalIndex})">Excluir</button>
                         </div>
                     </div>
                 `;
-            }).filter(html => html !== '').join('');
+            }).join('');
         }
 
         // Filtros
@@ -743,9 +669,8 @@
 
         // Persistência (usando variáveis JavaScript - funciona apenas durante a sessão)
         function saveProjects() {
-            // Os dados são mantidos na memória durante a sessão
-            // Use o botão "Salvar Dados" para fazer download de um arquivo de backup
-            console.log('Projetos atualizados:', projects.length, 'projetos');
+            // Em um ambiente real, você salvaria no localStorage ou enviaria para um servidor
+            console.log('Projetos salvos:', projects);
         }
 
         function loadProjects() {
