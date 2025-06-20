@@ -1,0 +1,799 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HAWKING - Gerenciador de Projetos</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            min-height: 100vh;
+            color: #fff;
+        }
+
+        .header {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 20px 0;
+            text-align: center;
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .logo {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 15px;
+            background: #fff;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        .logo svg {
+            width: 50px;
+            height: 50px;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 300;
+            letter-spacing: 3px;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            font-size: 1rem;
+            opacity: 0.8;
+            font-weight: 300;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .btn {
+            background: linear-gradient(45deg, #00ff88, #00cc6a);
+            color: #000;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 255, 136, 0.3);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 255, 136, 0.4);
+        }
+
+        .filter-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .filter-btn.active {
+            background: rgba(0, 255, 136, 0.2);
+            border-color: #00ff88;
+            color: #00ff88;
+        }
+
+        .projects-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .project-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border-radius: 15px;
+            padding: 25px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .project-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(45deg, #00ff88, #00cc6a);
+        }
+
+        .project-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+            border-color: rgba(0, 255, 136, 0.3);
+        }
+
+        .project-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 15px;
+        }
+
+        .project-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 5px;
+            line-height: 1.2;
+        }
+
+        .project-client {
+            font-size: 0.9rem;
+            opacity: 0.7;
+            margin-bottom: 10px;
+        }
+
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .status-planejamento { background: rgba(255, 193, 7, 0.2); color: #ffc107; }
+        .status-desenvolvimento { background: rgba(0, 123, 255, 0.2); color: #007bff; }
+        .status-revisao { background: rgba(255, 152, 0, 0.2); color: #ff9800; }
+        .status-concluido { background: rgba(40, 167, 69, 0.2); color: #28a745; }
+        .status-pausado { background: rgba(220, 53, 69, 0.2); color: #dc3545; }
+
+        .project-description {
+            font-size: 0.9rem;
+            line-height: 1.5;
+            margin-bottom: 20px;
+            opacity: 0.8;
+        }
+
+        .project-dates {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.8rem;
+            margin-bottom: 15px;
+            opacity: 0.7;
+        }
+
+        .progress-container {
+            margin-bottom: 15px;
+        }
+
+        .progress-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.8rem;
+            margin-bottom: 5px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(45deg, #00ff88, #00cc6a);
+            transition: width 0.3s ease;
+        }
+
+        .project-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+
+        .btn-small {
+            padding: 6px 12px;
+            font-size: 0.7rem;
+            border-radius: 15px;
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-small:hover {
+            background: rgba(0, 255, 136, 0.2);
+            border-color: #00ff88;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            padding: 30px;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 500px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
+        }
+
+        .modal h2 {
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+            font-weight: 300;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            font-size: 0.9rem;
+            backdrop-filter: blur(10px);
+        }
+
+        .form-group input::placeholder,
+        .form-group textarea::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .form-group textarea {
+            height: 80px;
+            resize: vertical;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 15px;
+            justify-content: flex-end;
+            margin-top: 30px;
+        }
+
+        .btn-cancel {
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            background: none;
+            border: none;
+            color: #fff;
+            font-size: 1.5rem;
+            cursor: pointer;
+            opacity: 0.7;
+            transition: opacity 0.3s ease;
+        }
+
+        .close-modal:hover {
+            opacity: 1;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: 600;
+            color: #00ff88;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px 15px;
+            }
+            
+            .controls {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 20px;
+            }
+            
+            .controls > div:first-child {
+                display: flex;
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .filter-group {
+                justify-content: center;
+            }
+            
+            .projects-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="logo">
+            <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="50" cy="50" r="45" fill="#1e3c72" stroke="#00ff88" stroke-width="2"/>
+                <path d="M30 70 Q35 50 40 60 Q45 45 50 55 Q55 40 60 50 Q65 35 70 45" 
+                      stroke="#00ff88" stroke-width="2" fill="none"/>
+                <circle cx="32" cy="65" r="2" fill="#00ff88"/>
+                <circle cx="42" cy="52" r="2" fill="#00ff88"/>
+                <circle cx="52" cy="48" r="2" fill="#00ff88"/>
+                <circle cx="62" cy="42" r="2" fill="#00ff88"/>
+                <circle cx="68" cy="38" r="2" fill="#00ff88"/>
+                <path d="M30 75 L35 80 M40 75 L45 80 M50 75 L55 80" 
+                      stroke="#00ff88" stroke-width="1.5"/>
+            </svg>
+        </div>
+        <h1>HAWKING</h1>
+        <div class="subtitle">Gerenciador de Projetos</div>
+    </div>
+
+    <div class="container">
+        <div class="stats">
+            <div class="stat-card">
+                <div class="stat-number" id="totalProjects">0</div>
+                <div class="stat-label">Total de Projetos</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="activeProjects">0</div>
+                <div class="stat-label">Em Andamento</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="completedProjects">0</div>
+                <div class="stat-label">Concluídos</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="overdueProjects">0</div>
+                <div class="stat-label">Atrasados</div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <div style="display: flex; gap: 15px;">
+                <button class="btn" onclick="openModal()">+ Novo Projeto</button>
+                <button class="btn" onclick="saveToFile()" style="background: linear-gradient(45deg, #007bff, #0056b3);">💾 Salvar Dados</button>
+            </div>
+            <div class="filter-group">
+                <button class="filter-btn active" onclick="filterProjects('todos')">Todos</button>
+                <button class="filter-btn" onclick="filterProjects('planejamento')">Planejamento</button>
+                <button class="filter-btn" onclick="filterProjects('desenvolvimento')">Desenvolvimento</button>
+                <button class="filter-btn" onclick="filterProjects('revisao')">Revisão</button>
+                <button class="filter-btn" onclick="filterProjects('concluido')">Concluído</button>
+                <button class="filter-btn" onclick="filterProjects('pausado')">Pausado</button>
+            </div>
+        </div>
+
+        <div class="projects-grid" id="projectsGrid">
+            <!-- Projetos serão inseridos aqui dinamicamente -->
+        </div>
+    </div>
+
+    <!-- Modal para adicionar/editar projeto -->
+    <div class="modal" id="projectModal">
+        <div class="modal-content">
+            <button class="close-modal" onclick="closeModal()">&times;</button>
+            <h2 id="modalTitle">Novo Projeto</h2>
+            <form id="projectForm">
+                <div class="form-group">
+                    <label for="projectName">Nome do Projeto</label>
+                    <input type="text" id="projectName" placeholder="Digite o nome do projeto" required>
+                </div>
+                <div class="form-group">
+                    <label for="projectClient">Cliente</label>
+                    <input type="text" id="projectClient" placeholder="Nome do cliente">
+                </div>
+                <div class="form-group">
+                    <label for="projectDescription">Descrição</label>
+                    <textarea id="projectDescription" placeholder="Descreva o projeto..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="projectStatus">Status</label>
+                    <select id="projectStatus">
+                        <option value="planejamento">Planejamento</option>
+                        <option value="desenvolvimento">Desenvolvimento</option>
+                        <option value="revisao">Revisão</option>
+                        <option value="concluido">Concluído</option>
+                        <option value="pausado">Pausado</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="projectStartDate">Data de Início</label>
+                    <input type="date" id="projectStartDate">
+                </div>
+                <div class="form-group">
+                    <label for="projectEndDate">Data de Entrega</label>
+                    <input type="date" id="projectEndDate">
+                </div>
+                <div class="form-group">
+                    <label for="projectProgress">Progresso (%)</label>
+                    <input type="number" id="projectProgress" min="0" max="100" value="0">
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-cancel" onclick="closeModal()">Cancelar</button>
+                    <button type="submit" class="btn">Salvar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let projects = [];
+        let editingIndex = -1;
+
+        // Inicialização
+        document.addEventListener('DOMContentLoaded', function() {
+            loadProjects();
+            renderProjects();
+            updateStats();
+        });
+
+        // Gerenciamento do modal
+        function openModal(index = -1) {
+            editingIndex = index;
+            const modal = document.getElementById('projectModal');
+            const form = document.getElementById('projectForm');
+            const title = document.getElementById('modalTitle');
+
+            if (index >= 0) {
+                title.textContent = 'Editar Projeto';
+                const project = projects[index];
+                document.getElementById('projectName').value = project.name;
+                document.getElementById('projectClient').value = project.client;
+                document.getElementById('projectDescription').value = project.description;
+                document.getElementById('projectStatus').value = project.status;
+                document.getElementById('projectStartDate').value = project.startDate;
+                document.getElementById('projectEndDate').value = project.endDate;
+                document.getElementById('projectProgress').value = project.progress;
+            } else {
+                title.textContent = 'Novo Projeto';
+                form.reset();
+            }
+
+            modal.style.display = 'block';
+        }
+
+        function closeModal() {
+            document.getElementById('projectModal').style.display = 'none';
+            editingIndex = -1;
+        }
+
+        // Manipulação de projetos
+        document.getElementById('projectForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const project = {
+                name: document.getElementById('projectName').value,
+                client: document.getElementById('projectClient').value,
+                description: document.getElementById('projectDescription').value,
+                status: document.getElementById('projectStatus').value,
+                startDate: document.getElementById('projectStartDate').value,
+                endDate: document.getElementById('projectEndDate').value,
+                progress: parseInt(document.getElementById('projectProgress').value),
+                createdAt: editingIndex >= 0 ? projects[editingIndex].createdAt : new Date().toISOString()
+            };
+
+            if (editingIndex >= 0) {
+                projects[editingIndex] = project;
+            } else {
+                projects.push(project);
+            }
+
+            saveProjects();
+            renderProjects();
+            updateStats();
+            closeModal();
+            showNotification(editingIndex >= 0 ? 'Projeto atualizado com sucesso!' : 'Projeto criado com sucesso!', 'success');
+        });
+
+        function deleteProject(index) {
+            if (confirm('Tem certeza que deseja excluir este projeto?')) {
+                projects.splice(index, 1);
+                renderProjects();
+                updateStats();
+                showNotification('Projeto excluído com sucesso!', 'success');
+            }
+        }
+
+        // Função para salvar dados em arquivo
+        function saveToFile() {
+            const dataStr = JSON.stringify(projects, null, 2);
+            const dataBlob = new Blob([dataStr], {type: 'application/json'});
+            
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(dataBlob);
+            link.download = `hawking_projetos_${new Date().toISOString().split('T')[0]}.json`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            showNotification('Dados salvos com sucesso!', 'success');
+        }
+
+        // Sistema de notificações
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: ${type === 'success' ? 'rgba(40, 167, 69, 0.9)' : 'rgba(0, 123, 255, 0.9)'};
+                color: white;
+                padding: 15px 20px;
+                border-radius: 8px;
+                z-index: 10000;
+                font-size: 14px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+                backdrop-filter: blur(10px);
+                animation: slideIn 0.3s ease;
+            `;
+            notification.textContent = message;
+            
+            // Adicionar CSS da animação se não existir
+            if (!document.querySelector('#notification-style')) {
+                const style = document.createElement('style');
+                style.id = 'notification-style';
+                style.textContent = `
+                    @keyframes slideIn {
+                        from { transform: translateX(100%); opacity: 0; }
+                        to { transform: translateX(0); opacity: 1; }
+                    }
+                `;
+                document.head.appendChild(style);
+            }
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.style.animation = 'slideIn 0.3s ease reverse';
+                setTimeout(() => {
+                    if (notification.parentNode) {
+                        document.body.removeChild(notification);
+                    }
+                }, 300);
+            }, 3000);
+        }
+
+        // Renderização
+        function renderProjects(filteredProjects = projects) {
+            const grid = document.getElementById('projectsGrid');
+            
+            if (filteredProjects.length === 0) {
+                grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 40px; opacity: 0.6;">Nenhum projeto encontrado</div>';
+                return;
+            }
+
+            grid.innerHTML = projects.map((project, index) => {
+                // Só renderiza se o projeto está nos filtrados (ou se não há filtro)
+                if (filteredProjects !== projects && !filteredProjects.includes(project)) {
+                    return '';
+                }
+
+                const isOverdue = project.endDate && new Date(project.endDate) < new Date() && project.status !== 'concluido';
+                const daysLeft = project.endDate ? Math.ceil((new Date(project.endDate) - new Date()) / (1000 * 60 * 60 * 24)) : null;
+
+                return `
+                    <div class="project-card" data-project-id="${index}">
+                        <div class="project-header">
+                            <div>
+                                <div class="project-title">${project.name}</div>
+                                ${project.client ? `<div class="project-client">${project.client}</div>` : ''}
+                            </div>
+                            <span class="status-badge status-${project.status}">${getStatusText(project.status)}</span>
+                        </div>
+                        
+                        ${project.description ? `<div class="project-description">${project.description}</div>` : ''}
+                        
+                        <div class="project-dates">
+                            <span>Início: ${project.startDate ? formatDate(project.startDate) : 'Não definido'}</span>
+                            <span style="color: ${isOverdue ? '#dc3545' : 'inherit'}">
+                                Entrega: ${project.endDate ? formatDate(project.endDate) : 'Não definido'}
+                                ${daysLeft !== null ? `(${daysLeft > 0 ? daysLeft + ' dias' : Math.abs(daysLeft) + ' dias atraso'})` : ''}
+                            </span>
+                        </div>
+                        
+                        <div class="progress-container">
+                            <div class="progress-label">
+                                <span>Progresso</span>
+                                <span>${project.progress}%</span>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: ${project.progress}%"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="project-actions">
+                            <button class="btn-small" onclick="openModal(${index})">Editar</button>
+                            <button class="btn-small" onclick="deleteProject(${index})" style="background: rgba(220, 53, 69, 0.2); border-color: #dc3545;">Excluir</button>
+                        </div>
+                    </div>
+                `;
+            }).filter(html => html !== '').join('');
+        }
+
+        // Filtros
+        function filterProjects(status) {
+            // Atualizar botões ativos
+            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+
+            // Filtrar projetos
+            const filtered = status === 'todos' ? projects : projects.filter(p => p.status === status);
+            renderProjects(filtered);
+        }
+
+        // Estatísticas
+        function updateStats() {
+            const total = projects.length;
+            const active = projects.filter(p => p.status !== 'concluido' && p.status !== 'pausado').length;
+            const completed = projects.filter(p => p.status === 'concluido').length;
+            const overdue = projects.filter(p => p.endDate && new Date(p.endDate) < new Date() && p.status !== 'concluido').length;
+
+            document.getElementById('totalProjects').textContent = total;
+            document.getElementById('activeProjects').textContent = active;
+            document.getElementById('completedProjects').textContent = completed;
+            document.getElementById('overdueProjects').textContent = overdue;
+        }
+
+        // Utilitários
+        function getStatusText(status) {
+            const statusMap = {
+                'planejamento': 'Planejamento',
+                'desenvolvimento': 'Desenvolvimento',
+                'revisao': 'Revisão',
+                'concluido': 'Concluído',
+                'pausado': 'Pausado'
+            };
+            return statusMap[status] || status;
+        }
+
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('pt-BR');
+        }
+
+        // Persistência (usando variáveis JavaScript - funciona apenas durante a sessão)
+        function saveProjects() {
+            // Os dados são mantidos na memória durante a sessão
+            // Use o botão "Salvar Dados" para fazer download de um arquivo de backup
+            console.log('Projetos atualizados:', projects.length, 'projetos');
+        }
+
+        function loadProjects() {
+            // Em um ambiente real, você carregaria do localStorage ou de um servidor
+            // Por enquanto, vamos adicionar alguns projetos de exemplo
+            if (projects.length === 0) {
+                projects = [
+                    {
+                        name: 'Sistema de Gestão Empresarial',
+                        client: 'Tech Solutions Ltda',
+                        description: 'Desenvolvimento de sistema completo para gestão de recursos empresariais',
+                        status: 'desenvolvimento',
+                        startDate: '2025-01-15',
+                        endDate: '2025-07-30',
+                        progress: 35,
+                        createdAt: '2025-01-15T10:00:00Z'
+                    },
+                    {
+                        name: 'Website Corporativo',
+                        client: 'Inovação Digital',
+                        description: 'Criação de website responsivo com foco em conversão',
+                        status: 'revisao',
+                        startDate: '2025-02-01',
+                        endDate: '2025-06-25',
+                        progress: 80,
+                        createdAt: '2025-02-01T09:00:00Z'
+                    },
+                    {
+                        name: 'App Mobile de Delivery',
+                        client: 'FoodTech Startup',
+                        description: 'Aplicativo móvel para pedidos de comida com integração de pagamento',
+                        status: 'planejamento',
+                        startDate: '2025-03-01',
+                        endDate: '2025-08-15',
+                        progress: 10,
+                        createdAt: '2025-02-20T14:00:00Z'
+                    }
+                ];
+            }
+        }
+
+        // Fechar modal ao clicar fora
+        window.onclick = function(event) {
+            const modal = document.getElementById('projectModal');
+            if (event.target === modal) {
+                closeModal();
+            }
+        }
+    </script>
+</body>
+</html>
